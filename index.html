@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sayed Portfolio</title>
+
+<style>
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    background: linear-gradient(135deg,#1e3c72,#2a5298);
+    color:white;
+}
+
+.container{
+    text-align:center;
+    background: rgba(255,255,255,0.1);
+    padding:60px;
+    border-radius:15px;
+    backdrop-filter: blur(10px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.3);
+    max-width:600px;
+}
+
+h1{
+    font-size:32px;
+    margin-bottom:20px;
+}
+
+p{
+    font-size:20px;
+    margin-top:20px;
+}
+
+button{
+    margin-top:25px;
+    padding:12px 30px;
+    border:none;
+    border-radius:30px;
+    font-size:16px;
+    cursor:pointer;
+    background:white;
+    color:#2a5298;
+    font-weight:bold;
+    transition:0.3s;
+}
+
+button:hover{
+    transform:scale(1.1);
+}
+
+.fade{
+    animation:fadeIn 2s;
+}
+
+@keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Welcome 👋</h1>
+
+<button onclick="showText()">Click Here</button>
+
+<p id="text"></p>
+
+</div>
+
+<script>
+
+function showText(){
+document.getElementById("text").innerHTML =
+"Hi, my name is <b>Sayed Atwh</b><br>I am a DevOps and Cloud Engineer 🚀";
+document.getElementById("text").classList.add("fade");
+}
+
+</script>
+
+</body>
+</html>

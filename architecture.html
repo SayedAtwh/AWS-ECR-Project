@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevOps Architecture - Project ECR</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --aws-orange: #FF9900;
+            --aws-blue: #00AEEF;
+            --aws-purple: #7F00FF;
+            --aws-green: #7FBA42;
+            --bg: #0a0c10;
+            --surface: #161b22;
+            --surface-elevated: #21262d;
+            --text: #c9d1d9;
+            --text-dim: #8b949e;
+            --neon-blue: #00f2ff;
+        }
+
+        * { margin:0; padding:0; box-sizing:border-box; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 40px;
+            overflow-x: hidden;
+        }
+
+        /* Dashboard Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .header-title h1 { font-size: 24px; font-weight: 700; color: #fff; }
+        .header-title p { font-size: 14px; color: var(--text-dim); margin-top: 4px; }
+        .status-badge {
+            background: rgba(127, 186, 66, 0.1);
+            color: var(--aws-green);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            border: 1px solid var(--aws-green);
+        }
+
+        /* Main Architecture Web */
+        .arch-web {
+            display: grid;
+            grid-template-columns: 320px 100px 1fr;
+            gap: 0;
+            align-items: center;
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        /* Columns */
+        .phase-box {
+            background: var(--surface);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(255,255,255,0.05);
+            position: relative;
+        }
+
+        .phase-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--text-dim);
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        /* Service Cards */
+        .card {
+            background: var(--surface-elevated);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.03);
+            cursor: pointer;
+            transition: 0.3s;
+            position: relative;
+        }
+        .card:hover {
+            border-color: var(--aws-orange);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .card-icon { font-size: 28px; margin-bottom: 12px; }
+        .card-title { font-size: 15px; font-weight: 700; color: #fff; }
+        .card-desc { font-size: 12px; color: var(--text-dim); margin-top: 5px; }
+
+        /* Connections */
+        .connector {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .line {
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(to right, var(--aws-orange), var(--aws-cyan));
+            opacity: 0.5;
+            position: relative;
+        }
+        .line-vertical {
+            width: 2px;
+            height: 40px;
+            background: rgba(255,255,255,0.1);
+            margin: -10px auto 0;
+        }
+
+        /* Production Side (VPC) */
+        .vpc-landscape {
+            border: 2px solid var(--aws-purple);
+            border-radius: 24px;
+            padding: 40px;
+            background: rgba(127, 0, 255, 0.02);
+            position: relative;
+        }
+        .vpc-tag {
+            position: absolute;
+            top: -12px;
+            left: 30px;
+            background: var(--bg);
+            padding: 0 15px;
+            color: var(--aws-purple);
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .ecs-cluster {
+            border: 2px dashed rgba(255, 153, 0, 0.3);
+            border-radius: 16px;
+            padding: 30px;
+            margin-top: 40px;
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .task-box {
+            background: var(--surface-elevated);
+            border: 1px solid var(--aws-cyan);
+            padding: 15px;
+            border-radius: 10px;
+            width: 130px;
+            text-align: center;
+        }
+        .task-id { font-size: 12px; font-weight: 700; margin-top: 8px; }
+        .task-status { font-size: 10px; color: var(--aws-green); margin-top: 4px; }
+
+        /* Tooltip */
+        .tooltip {
+            display: none;
+            position: fixed;
+            background: rgba(0,0,0,0.9);
+            border: 1px solid var(--aws-orange);
+            padding: 20px;
+            border-radius: 10px;
+            width: 300px;
+            z-index: 1000;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+        }
+        .tooltip h3 { color: var(--aws-orange); margin-bottom: 10px; }
+        .tooltip p { font-size: 13px; color: #ccc; }
+
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="header-title">
+            <h1>DevOps Architecture Dashboard</h1>
+            <p>Unified Build & Runtime Flow for Project ECR</p>
+        </div>
+        <div class="status-badge">DEPLOYMENT: ACTIVE</div>
+    </header>
+
+    <div class="arch-web">
+        
+        <!-- PHASE 1: CI/CD -->
+        <div class="phase-box">
+            <div class="phase-label">CI/CD Pipeline</div>
+            
+            <div class="card" onclick="openTip('github')">
+                <div class="card-icon">🐙</div>
+                <div class="card-title">GitHub source</div>
+                <div class="card-desc">Dockerfile & App Code</div>
+            </div>
+
+            <div class="line-vertical"></div>
+
+            <div class="card" onclick="openTip('ec2')">
+                <div class="card-icon">🖥️</div>
+                <div class="card-title">EC2 Build Server</div>
+                <div class="card-desc">Docker Build Process</div>
+            </div>
+
+            <div class="line-vertical"></div>
+
+            <div class="card" onclick="openTip('ecr')">
+                <div class="card-icon">📦</div>
+                <div class="card-title">Amazon ECR</div>
+                <div class="card-desc">Docker Registry</div>
+            </div>
+        </div>
+
+        <!-- CONNECTOR LIGHT -->
+        <div class="connector">
+            <div class="line" style="width: 100px;"></div>
+        </div>
+
+        <!-- PHASE 2: RUNTIME -->
+        <div class="vpc-landscape">
+            <div class="vpc-tag">AWS VPC (Production)</div>
+            
+            <div class="card" style="max-width: 400px; margin: 0 auto;" onclick="openTip('alb')">
+                <div class="card-icon">⚖️</div>
+                <div class="card-title">Elastic Load Balancer</div>
+                <div class="card-desc">Traffic distribution over Fargate</div>
+            </div>
+
+            <div class="ecs-cluster">
+                <div style="width: 100%; text-align: center; font-size: 11px; font-weight: 800; color: var(--aws-orange); margin-bottom: 15px;">ECS FARGATE CLUSTER</div>
+                <div class="task-box" onclick="openTip('fargate')">
+                    <div style="font-size: 24px;">🐳</div>
+                    <div class="task-id">Task-af01</div>
+                    <div class="task-status">HEALTHY</div>
+                </div>
+                <div class="task-box" onclick="openTip('fargate')">
+                    <div style="font-size: 24px;">🐳</div>
+                    <div class="task-id">Task-af02</div>
+                    <div class="task-status">HEALTHY</div>
+                </div>
+                <div class="task-box" onclick="openTip('fargate')">
+                    <div style="font-size: 24px;">🐳</div>
+                    <div class="task-id">Task-af03</div>
+                    <div class="task-status">HEALTHY</div>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div id="tooltip" class="tooltip">
+        <h3 id="tipTitle">Service Details</h3>
+        <p id="tipDesc">Details go here...</p>
+    </div>
+
+    <script>
+        const info = {
+            github: ["GitHub VCS", "Everything starts here. Your Dockerfile and code are pushed to this repo, triggering the flow."],
+            ec2: ["EC2 Build Node", "A cloud server that runs Docker to build your image. It installs dependencies and prepares the container."],
+            ecr: ["Amazon ECR", "Your private vault for Docker images. Once built, the image is pushed here for safe keeping."],
+            alb: ["Load Balancer", "The front door for your users. It receives requests and sends them to healthy containers."],
+            fargate: ["Fargate Tasks", "The actual running instances of your app. Serverless, scalable, and fully managed by AWS."]
+        };
+
+        function openTip(key) {
+            const data = info[key];
+            document.getElementById('tipTitle').innerText = data[0];
+            document.getElementById('tipDesc').innerText = data[1];
+            const tip = document.getElementById('tooltip');
+            tip.style.display = 'block';
+            tip.style.left = (event.clientX + 20) + 'px';
+            tip.style.top = (event.clientY + 20) + 'px';
+
+            event.stopPropagation();
+            document.addEventListener('click', () => { tip.style.display = 'none'; }, { once: true });
+        }
+    </script>
+</body>
+</html>
